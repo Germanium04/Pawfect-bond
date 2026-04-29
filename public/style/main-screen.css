@@ -1,0 +1,165 @@
+@import url('https://fonts.googleapis.com/css2?family=Amarante&display=swap');
+
+/* ==============================
+   RESET
+============================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Amarante', serif;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* ==============================
+   MAIN LAYOUT
+============================== */
+.layout {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* ==============================
+   SIDEBAR
+============================== */
+.nav-bar {
+    width: 330px;
+    background: #2E2E2E;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    transition: width 0.3s ease;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.nav-bar.collapsed {
+    width: 0;
+}
+
+/* ==============================
+   RIGHT SIDE
+============================== */
+.right-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+}
+
+/* ==============================
+   HEADER
+   overflow:visible lets the notification
+   box drop below without being clipped
+============================== */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 0 20px;
+    height: 80px;
+    box-sizing: border-box;
+    background-color: #E68A2E;
+    flex-shrink: 0;
+    overflow: visible;
+    position: relative;
+    z-index: 200;
+}
+
+/* ==============================
+   MAIN CONTENT
+============================== */
+.main-content {
+    flex: 1;
+    padding: 20px;
+    background: #F5E0C7;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+}
+
+.menu-toggle {
+    background-color: transparent;
+    border: none;
+    font-size: 22px;
+    color: white;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* ==============================
+   MOBILE OVERLAY
+============================== */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 999;
+}
+
+.sidebar-overlay.active {
+    display: block;
+}
+
+/* ==============================
+   RESPONSIVE — Tablet
+============================== */
+@media (max-width: 1024px) {
+    .nav-bar {
+        width: 260px;
+    }
+}
+
+/* ==============================
+   RESPONSIVE — Mobile
+============================== */
+@media (max-width: 768px) {
+    body {
+        overflow: auto;
+    }
+
+    .layout {
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
+    }
+
+    .nav-bar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 0;
+        height: 100vh;
+        z-index: 1000;
+        transition: width 0.3s ease;
+    }
+
+    /* JS adds this class to open sidebar on mobile */
+    .nav-bar.mobile-open {
+        width: 280px;
+    }
+
+    .right-side {
+        width: 100%;
+    }
+
+    .main-content {
+        padding: 12px;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .header {
+        padding: 0 12px;
+        height: 65px;
+    }
+}

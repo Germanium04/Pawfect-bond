@@ -1,0 +1,686 @@
+/* ==============================
+   TYPOGRAPHY
+============================== */
+h1 {
+    font-size: 18px;
+}
+
+h2 {
+    text-align: left;
+}
+
+h3 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+/* ==============================
+   BUTTONS GLOBAL
+============================== */
+button, .btn, .btn-secondary, .btn-profile, .btn-notification {
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+button:hover, .btn:hover {
+    opacity: 0.9;
+}
+
+/* ==============================
+   WELCOME HEADER
+============================== */
+.welcome-header {
+    text-align: justify;
+    background-color: white;
+    padding: 40px;
+    border-radius: 30px;
+}
+
+.btn-notification{
+    background-color: transparent;
+    border: none;
+}
+
+/* ==============================
+   STATS CARDS
+============================== */
+.stats_cards_section {
+    margin: 20px 0 40px 0;
+    display: flex;
+    justify-content: stretch;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.stats-card {
+    background-color: white;
+    color: #2E2E2E;
+    padding: 40px;
+    border-radius: 20px;
+    flex: 1 1 200px;
+    max-width: 100%;
+}
+
+/* ==============================
+   BOARD
+============================== */
+.board {
+    box-sizing: border-box;
+    padding: 30px;
+    border: 10px solid #E68A2E;
+    border-radius: 40px;
+    background-color: #FFF1DC;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    min-height: 500px;
+}
+
+.board-title {
+    padding: 10px 20px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0;
+    background-color: #E68A2E;
+    color: white;
+    border-bottom-right-radius: 20px;
+}
+
+/* ==============================
+   ACTION BAR
+============================== */
+.action-bar {
+    box-sizing: border-box;
+    width: 100%;
+    background-color: #FFF1DC;
+    border-radius: 30px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    gap: 20px;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.actions select {
+    background-color: white;
+    border: 2px solid #E68A2E;
+    color: #2E2E2E;
+    border-radius: 20px;
+    padding: 6px 50px 6px 24px;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%232E2E2E' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.action2 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+}
+
+.action2 > div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ==============================
+   SEARCH INPUT
+============================== */
+.search {
+    background-color: white;
+    border: 2px solid #E68A2E;
+    color: #2E2E2E;
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 14px;
+    outline: none;
+    width: 250px;
+}
+
+.search:focus {
+    border-color: #c87820;
+}
+
+/* ==============================
+   SECONDARY BUTTON
+============================== */
+.btn-secondary {
+    background-color: #E68A2E;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 7px 24px;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-secondary:hover {
+    background-color: #c87820;
+}
+
+/* =============================
+    TABLE 
+============================= */
+.table {
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 10px solid #2E2E2E;
+    border-radius: 20px;
+    overflow: hidden;
+    background-color: #2E2E2E; 
+    text-align: center;
+}
+
+.table th{
+    font-weight: normal;
+    background-color: #2E2E2E;
+    color: white;
+}
+
+/* =============================
+    PET FRAME
+============================= */
+/* The Main Container Card */
+.pet-frame {
+    width: 280px;
+    background-color: #E68A2E;
+    border-radius: 40px;
+    padding: 15px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+}
+
+/* The Paw Badge in the corner */
+.frame-badge {
+    background-color: #E68A2E;
+    border-radius: 100px;
+    padding: 10px;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    z-index: 10;
+}
+.frame-badge img {
+    width: 60px;
+}
+
+/* The Picture Container */
+.pet-picture {
+    width: 100%;
+    height: 200px;
+    border-top-right-radius: 25px;
+    overflow: hidden;
+    border: 3px solid #E68A2E;
+}
+.pet-picture img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Keeps the cat face centered */
+}
+
+/* The Floating Name Badge */
+.pet-name {
+    background-color: #E68A2E;
+    padding: 5px 30px;
+    border-radius: 20px;
+    margin-top: -25px; /* Pulls it up to overlap the image */
+    z-index: 5;
+    border: 3px solid #FFF8E7; /* Small gap effect */
+}
+.pet-name h1 {
+    color: white;
+    font-size: 24px;
+    margin: 0;
+    /* font-family: 'Serif', Georgia; Matching the font style */
+}
+
+/* The Bottom Text Area */
+.pet-mini-info {
+    background-color: #FFF8E7;
+    width: 100%;
+    border-bottom-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+    border:3px solid #E68A2E;
+    padding: 40px 10px 20px 10px; /* Top padding is larger because of overlap */
+    margin-top: -20px; /* Pulls the box up under the name */
+    text-align: center;
+}
+.pet-mini-info p {
+    color: #2E2E2E;
+    font-size: 18px;
+    margin: 2px 0;
+    font-weight: 600;
+}
+
+/* ===========================
+    PET INFO DETAIL POST
+============================ */
+.pet-listing {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 equal columns */
+    gap: 30px 53px;
+    /* remove flex-wrap, it's not needed with grid */
+}
+
+.add-pet-image img {
+    width: 250px; /* Adjust to match your png size */
+    transition: transform 0.2s;
+}
+
+.add-pet-image img:hover {
+    transform: scale(1.02);
+}
+
+.pet-frame {
+    /* ... your existing styles ... */
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    cursor: pointer;
+}
+
+/* 2. The jumping effect */
+.pet-frame:hover {
+    transform: translateY(-15px); /* Moves the card UP by 15px */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Adds a shadow to make it look "off the ground" */
+}
+
+/* 
+=====================
+    FORM
+===================== */
+form {
+    padding: 20px; /* Increased for better breathing room */
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch; /* was: center — that forced every child to center-align, fighting the grid layouts */
+}
+
+.pet-info-detail {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; 
+    gap: 30px; /* Large gap between image and text fields */
+    width: 100%; /* Keeps the form from getting too wide */
+}
+
+.prof-info-detail {
+    display: flex;
+    flex-direction: row;
+    justify-content: center; 
+    gap: 30px; /* Large gap between image and text fields */
+    width: 100%; /* Keeps the form from getting too wide */
+}
+
+.prof-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns for the fields */
+    gap: 20px 40px; /* Space between rows and columns */
+    flex-grow: 1;
+}
+
+.prof-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns for the fields */
+    gap: 20px 40px; /* Space between rows and columns */
+    flex-grow: 1;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: row; /* This puts label and input on the same line */
+    align-items: center; /* Vertically centers the text with the box */
+    justify-content: flex-end; /* Pushes the input to the right */
+    gap: 15px; /* Space between label text and input box */
+}
+
+.form-group label {
+    font-weight: bold;
+    color: #4A2B0F;
+    min-width: 100px; /* Keeps labels aligned */
+    text-align: left;
+}
+
+.custom-input {
+    border: 2px solid #E68A2E;
+    border-radius: 15px;
+    padding: 8px 15px;
+    background: white;
+    outline: none;
+    flex: 1; /* This makes the input fill the remaining space */
+    width: 100%;
+}
+.full-width {
+    grid-column: span 2;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.post-btn {
+    background-color: #FFB366;
+    border: none;
+    border-radius: 20px; /* Rounder corners like the design */
+    color: #4A2B0F;
+    width: 100%;
+    max-width: 850px; /* Match the width of the info-detail section */
+    padding: 15px;
+    margin-top: 30px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.post-btn:hover {
+    background-color: #E68A2E;
+    color: white;
+}
+/* ======================
+    ADDED PET PIC
+====================== */
+
+#image-preview {
+    width: 250px;
+    height: 200px;
+    object-fit: cover; /* This is key: it crops the image to fit without stretching */
+    border: 10px dashed #E68A2E;
+    border-radius: 10px;
+}
+
+/* ========================
+    PROFILE
+========================= */
+/* Circular Profile Image */
+.profile-image-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px; /* Space between pic and buttons */
+    min-width: 200px;
+}
+
+.circular-preview {
+    width: 170px;
+    height: 170px;
+    border-radius: 50%;
+    border: 5px solid #E68A2E;
+    overflow: hidden;
+    background-color: white;
+}
+
+.circular-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Buttons Under Pic */
+.profile-action-btn {
+    width: 160px;
+    padding: 10px;
+    border-radius: 12px;
+    border: none;
+    background-color: #4A2B0F; /* Brown */
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.delete-acc-btn {
+    background-color: #ff4d4d; /* Red */
+    margin-top: 5px;
+}
+
+.profile-action-btn:hover {
+    opacity: 0.8;
+}
+/* ==============================
+   COMMUNITY INBOX (DARK THEME)
+============================== */
+.inbox_messages {
+    display: flex;
+    background-color: #2E2E2E;
+    border-radius: 20px;
+    overflow: hidden;
+    /* Fill remaining space in .main-content minus the page elements above */
+    height: calc(100vh - 80px - 40px - 60px - 180px); /* viewport - header - main padding - page title/p - stats */
+    min-height: 400px;
+    margin: 20px 0 0 0;
+    border: 5px solid #2E2E2E;
+    padding: 0;
+    align-items: stretch;
+}
+
+/* LEFT BAR */
+.left-bar {
+    width: 270px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    padding: 20px 0 20px 20px;
+    overflow: hidden; /* people list handles its own scroll */
+}
+
+.tab-option {
+    display: flex;
+    flex-direction: row;
+}
+
+.tab-btn {
+    background: #2E2E2E;
+    border: none;
+    color: #FFF1DC;
+    padding: 12px 18px;
+    text-align: left;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border-radius: 0;
+}
+
+.tab-btn.active {
+    color: #4A2B0F;
+    background-color: #FFF1DC;
+    border-radius: 20px 20px 0 0;
+    font-weight: bold;
+}
+
+.people-list {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.people-list ul {
+    height: 100%;
+    list-style: none;
+    padding: 8px 0;
+    background-color: #E68A2E;
+    border-radius: 0 12px 12px 12px;
+    overflow-y: auto;
+}
+
+.people-list li {
+    padding: 14px 35px;
+    color: #4A2B0F;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background 0.2s;
+}
+
+.people-list li:hover,
+.people-list li.active-person {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* RIGHT BAR */
+.right-bar {
+    flex: 1;
+    min-width: 0;
+    background-color: #FFF1DC;
+    border-radius: 20px;
+    margin: 10px 10px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Header Buttons */
+.action-buttons {
+    padding: 12px 14px 6px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.top-action-btn {
+    padding: 6px 18px;
+    border-radius: 10px;
+    border: none;
+    font-weight: bold;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+#btn-archive { background-color: #ADD8E6; color: #2E2E2E; }
+#btn-block   { background-color: #FFFACD; color: #2E2E2E; }
+#btn-report  { background-color: #FFB366; color: #4A2B0F; }
+
+/* Message Content Area — the ONLY scrollable part */
+.message-content {
+    flex: 1;
+    min-height: 0;          /* critical: lets flex shrink so scroll kicks in */
+    padding: 16px 20px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.message-content.empty-state {
+    justify-content: center;
+    align-items: center;
+    color: #c8a07a;
+    font-size: 14px;
+}
+
+/* Reply Section */
+.reply-section {
+    background-color: #2E2E2E;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    border-radius: 0 0 20px 20px;
+}
+
+.icon-btn {
+    background-color: #2E2E2E;
+    border: none;
+    width: 45px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.icon-btn img {
+    width: 45px;
+    height: auto;
+}
+
+.reply-section textarea {
+    flex: 1;
+    border-radius: 15px;
+    border: none;
+    padding: 10px 15px;
+    height: 40px;
+    resize: none;
+    outline: none;
+    font-size: 14px;
+    background-color: #f5f0e8;
+}
+
+.btn-send-nav {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-send-nav img {
+    width: 35px;
+}
+
+.msg-bubble {
+    display: flex;
+    flex-direction: column;
+    max-width: 65%;
+    margin-bottom: 10px;
+}
+
+.msg-mine {
+    align-self: flex-end;
+    align-items: flex-end;
+}
+
+.msg-theirs {
+    align-self: flex-start;
+    align-items: flex-start;
+}
+
+.bubble-text {
+    background-color: #E68A2E;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 16px 16px 4px 16px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.msg-theirs .bubble-text {
+    background-color: #fff;
+    color: #4A2B0F;
+    border-radius: 16px 16px 16px 4px;
+    border: 1px solid #e0c9a6;
+}
+
+.bubble-time {
+    font-size: 11px;
+    color: #a07050;
+    margin-top: 3px;
+    padding: 0 4px;
+}
+
+.no-convo {
+    padding: 14px 20px;
+    color: #7a4a20;
+    font-size: 13px;
+    font-style: italic;
+    cursor: default !important;
+}
+
+/* NOTE: .notif-box styles live in container3.css — do not redefine here */

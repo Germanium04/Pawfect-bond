@@ -1,0 +1,138 @@
+/* ==============================
+   SIDEBAR NAVIGATION
+============================== */
+
+/* TOP LOGO */
+.logo-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 20px 0;
+    width: 100%;
+}
+
+.logo-nav img {
+    width: 65%;
+    height: auto;
+}
+
+/* MIDDLE LINKS */
+.nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    padding: 20px 40px;
+    color: #FFC570;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.nav-links a:hover {
+    background-color: #FFC570;
+    color: #2E2E2E;
+    border-left: 10px solid #E68A2E;
+}
+
+/* SIGN OUT */
+.sign-out {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto 0px auto;
+}
+
+.sign-out button {
+    width: 200px;
+    background-color: #FFC570;
+    color: #2E2E2E;
+    border-radius: 20px;
+    padding: 20px;
+}
+
+/* ==============================
+   HEADER (RIGHT SIDE)
+============================== */
+.header .Title {
+    display: flex;
+    color: white;
+}
+
+.header .Title h1 {
+    margin: 0;
+}
+
+.header .action {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* ==============================
+   NOTIFICATION WRAPPER
+   Must stay position:relative so the
+   notif-box is anchored to the bell icon,
+   not the header edge
+============================== */
+.notification-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+#notif-box {
+    position: absolute;
+    right: 0;
+    top: 55px;
+    z-index: 9999;          /* above everything */
+    min-width: 300px;       /* never let it squish smaller than this */
+}
+
+/* ==============================
+   RESPONSIVE
+============================== */
+@media (max-width: 768px) {
+    .nav-links a {
+        padding: 16px 24px;
+        font-size: 14px;
+    }
+
+    .sign-out button {
+        width: 160px;
+        padding: 14px;
+    }
+
+    .header .Title h1 {
+        font-size: 16px !important;
+    }
+
+    .header .action {
+        gap: 10px;
+    }
+
+    .header .action img {
+        width: 35px;
+        height: 35px;
+    }
+
+    /* On mobile, notif box anchors to viewport right edge
+       so it never goes off-screen */
+    #notif-box {
+        position: fixed;
+        right: 12px;
+        top: 70px;          /* just below the mobile header height (65px) */
+        left: auto;
+        min-width: 280px;
+        max-width: calc(100vw - 24px);  /* never wider than screen */
+    }
+}
+
+@media (max-width: 400px) {
+    #notif-box {
+        right: 8px;
+        min-width: 0;
+        width: calc(100vw - 16px);  /* full width on very small screens */
+    }
+}

@@ -1,0 +1,153 @@
+@import url('https://fonts.googleapis.com/css2?family=Amarante&display=swap');
+
+body{
+    font-family: 'Amarante', serif;
+    min-height: 100vh;
+    background: linear-gradient(300deg, #E68A2E, #F5E0C7);
+}
+
+.card-register, .card-login{
+    width: 90%;             /* fluid on small screens */
+    max-width: 420px;       /* never wider than this on big screens */
+    background-color: #2E2E2E;
+    padding: 3%;    
+    border-radius: 35px;
+    border:none;
+}
+
+.card-register{
+    margin:2% auto;
+}
+
+.card-login{
+    margin: 8% auto 0 auto;
+}
+
+.card-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    background: transparent;
+    border: none;
+    padding-bottom: 10px;
+}
+
+.form-group{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+label{
+    color: #E68A2E;
+    font-size: 16px;
+}
+
+p{
+    color: white;
+}
+
+a{
+    color: #E68A2E;
+}
+
+p,a,.btn{
+    font-size: 15px;
+    text-align: center;
+}
+
+.btn{    
+    width: 100%;
+    background-color: #E68A2E;
+    color: white;
+    margin: 20px 0 20px 0;
+    padding: 5px;
+    cursor: pointer;
+}
+
+input, .btn{
+    height: 10%;
+    padding: 10px;
+    border-radius: 10px;
+    border:none;
+}
+
+.logo-container {
+    width: 100px;
+    height: 100px;
+}
+
+.logo-img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.header-text {
+    text-align: left;
+}
+
+.header-text h2 {
+    color: #E68A2E;
+    margin: 0;
+    font-size: 24px;
+}
+
+hr {
+    border: 0;
+    border-top: 5px solid #E68A2E;
+    margin: 20px 0;
+}
+
+/* ── Tablet (≤1024px) ── */
+@media (max-width: 1024px) {
+    .card-register, .card-login {
+        max-width: 380px;
+        padding: 4%;
+    }
+}
+
+/* ── Mobile (≤600px) ── */
+@media (max-width: 600px) {
+    .card-register, .card-login {
+        width: 90%;
+        max-width: 100%;
+        padding: 6%;
+        border-radius: 20px;
+        margin: 5% auto;
+    }
+
+    .card-login {
+        margin-top: 8%;
+    }
+
+    .card-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+    }
+
+    .header-text {
+        text-align: center;
+    }
+
+    .logo-container {
+        width: 75px;
+        height: 75px;
+    }
+
+    .header-text h2 {
+        font-size: 20px;
+    }
+
+    label {
+        font-size: 14px;
+    }
+
+    p, a, .btn {
+        font-size: 14px;
+    }
+}
