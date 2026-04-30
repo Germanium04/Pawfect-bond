@@ -221,6 +221,12 @@
                 </tbody>
             </table>
 
+            @if($pets->hasPages())
+                <div style="margin-top: 16px; padding: 0 4px;">
+                    {{ $pets->appends(request()->query())->links() }}
+                </div>
+            @endif
+
             {{-- Popup overlay (place OUTSIDE the <table>) --}}
             <div id="pet-popup-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:999;">
                 <div class="pet-popup" style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:1000; overflow-y:auto; max-height:100vh;">

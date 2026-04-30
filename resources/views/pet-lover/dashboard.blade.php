@@ -49,6 +49,11 @@
                 </div>
             @endforelse
         </div>
+        @if($pets->hasPages())
+            <div style="margin-top: 20px; width: 100%; height: 50px;">
+                {{ $pets->appends(request()->except('dash_page'))->links() }}
+            </div>
+        @endif
     </div>
 </div>
 @endsection

@@ -45,6 +45,11 @@ class Pet extends Model
         return $this->hasMany(AdoptionRequest::class, 'pet_id');
     }
 
+    public function adoption()
+    {
+        return $this->hasOne(Adoption::class, 'pet_id', 'pet_id');
+    }
+
     public function getAgeAttribute()
     {
         $birth = \Carbon\Carbon::parse($this->birthday);

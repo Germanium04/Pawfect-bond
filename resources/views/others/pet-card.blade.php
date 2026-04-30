@@ -1,4 +1,14 @@
-@php $isAdmin = auth()->user()->role === 'admin'; @endphp
+@php
+    $isAdmin = auth()->user()->role === 'admin';
+    $adoptionStatus = 'Available';
+    if ($isAdmin) {
+        if ($pet->adoption) {
+            $adoptionStatus = 'Rehomed';
+        } elseif ($pet->adoptionRequests->where('status', 'pending')->count() > 0) {
+            $adoptionStatus = 'Pending Adoption';
+        }
+    }
+@endphp
 
 <div class="pet-frame"
      onclick="{{ $isAdmin ? 'showAdminPetInfo(this)' : 'showPetInfo(this)' }}"
@@ -41,9 +51,7 @@
         <h1>{{ $pet->name }}</h1>
     </div>
 
-    {{-- Bottom section differs by role --}}
     @if($isAdmin)
-        {{-- Admin: View button + status badge --}}
         <div class="pet-mini-info" style="display:flex; flex-direction:row; justify-content:center; gap:10px; padding:30px 10px 15px 10px;">
             <button type="button"
                     class="admin-pet-view-btn"
@@ -52,13 +60,12 @@
                 View
             </button>
             <span style="border-radius:20px; padding:6px 14px; font-size:13px; white-space:nowrap;
-                         background:{{ $pet->status === 'available' ? '#d4edda' : '#f8d7da' }};
-                         color:{{ $pet->status === 'available' ? '#155724' : '#721c24' }};">
-                {{ ucfirst($pet->status) }}
+                background:{{ $adoptionStatus === 'Available' ? '#d4edda' : ($adoptionStatus === 'Pending Adoption' ? '#fff3cd' : '#cce5ff') }};
+                color:{{ $adoptionStatus === 'Available' ? '#155724' : ($adoptionStatus === 'Pending Adoption' ? '#856404' : '#004085') }};">
+                {{ $adoptionStatus }}
             </span>
         </div>
     @else
-        {{-- Pet lover: age + gender --}}
         <div class="pet-mini-info">
             <p>{{ $pet->age }}</p>
             <p>{{ $pet->gender }}</p>

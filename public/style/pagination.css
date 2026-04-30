@@ -1,0 +1,156 @@
+/* ============================================================
+   pagination.css  —  replace your existing file with this
+   ============================================================ */
+
+/* ── 1. Laravel built-in paginator ─────────────────────────── */
+
+/* Hide the mobile prev/next row completely — arrows handle navigation */
+nav[role="navigation"] .flex.gap-2 {
+    display: none !important;
+}
+
+/* Hide "Showing X to Y of Z results" */
+nav[role="navigation"] p {
+    display: none !important;
+}
+
+/* Center the whole nav */
+nav[role="navigation"] {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+/* Desktop wrapper — center it */
+nav[role="navigation"] .sm\:flex {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100%;
+}
+
+/* Hide the "Showing X to Y" text block */
+nav[role="navigation"] .sm\:flex > div:first-child {
+    display: none !important;
+}
+
+/* Center the buttons div */
+nav[role="navigation"] .sm\:flex > div:last-child {
+    display: flex;
+    justify-content: center;
+}
+
+/* Remove the connected pill grouping, use our own gap */
+nav[role="navigation"] .inline-flex.rtl\:flex-row-reverse {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 6px !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+/* ── All buttons: base style ── */
+nav[role="navigation"] a,
+nav[role="navigation"] span[aria-current="page"] > span,
+nav[role="navigation"] span[aria-disabled="true"] > span {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 36px !important;
+    height: 36px !important;
+    padding: 0 12px !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    flex-shrink: 0 !important;
+    margin-left: 0 !important;
+    box-shadow: none !important;
+    transition: background 0.18s, color 0.18s, transform 0.12s !important;
+    background-color: #2e1f0e !important;
+    color: #FFC570 !important;
+    border: 1.5px solid #5a3a18 !important;
+}
+
+/* Hover on active links */
+nav[role="navigation"] a:hover {
+    background-color: #E68A2E !important;
+    color: #fff !important;
+    border-color: #E68A2E !important;
+    transform: translateY(-1px);
+}
+
+/* Active / current page */
+nav[role="navigation"] span[aria-current="page"] > span {
+    background-color: #E68A2E !important;
+    color: #fff !important;
+    border-color: #E68A2E !important;
+    cursor: default !important;
+}
+
+/* Disabled prev / next arrows */
+nav[role="navigation"] span[aria-disabled="true"] > span {
+    background-color: #2e1f0e !important;
+    color: #555 !important;
+    border-color: #5a3a18 !important;
+    cursor: not-allowed !important;
+}
+
+/* SVG arrow icons */
+nav[role="navigation"] svg {
+    width: 14px !important;
+    height: 14px !important;
+    fill: currentColor !important;
+}
+
+
+/* ── 2. Custom JS pagination  (.at-pagination) ──────────────── */
+
+.at-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 16px;
+    margin-bottom: 8px;
+}
+
+.at-pagination button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid #5a3a18;
+    background: #2e1f0e;
+    color: #FFC570;
+    flex-shrink: 0;
+    transition: background 0.18s, color 0.18s, transform 0.12s;
+}
+.at-pagination button:hover:not(:disabled) {
+    background: #E68A2E;
+    color: #fff;
+    border-color: #E68A2E;
+    transform: translateY(-1px);
+}
+.at-pagination button.pg-active {
+    background: #E68A2E;
+    color: #fff;
+    border-color: #E68A2E;
+    cursor: default;
+}
+.at-pagination button.pg-disabled,
+.at-pagination button:disabled {
+    background: #2e1f0e;
+    color: #555;
+    border: 1.5px solid #5a3a18;
+    cursor: not-allowed;
+}

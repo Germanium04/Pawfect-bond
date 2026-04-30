@@ -61,7 +61,7 @@
                     <p style="color:#FFF1DC; margin:0; font-size:14px;">
                         {{ $request->reason }}
                     </p>
-                    <span class="minibadge" style="font-size:12px; padding:3px 10px;">
+                    <span class="minibadge" style="font-size:12px; padding:3px 10px; width: 80px; text-align:center; margin-top:6px; border: 3px solid #E68A2E; background:transparent; color:#E68A2E;">
                         {{ ucfirst($request->report_type) }}
                     </span>
                 @endif
@@ -77,10 +77,22 @@
                         </span>
 
                     @elseif($status == 'accepted')
+                    <div style="display:flex; flex-direction:roaw; align-items:flex-end; gap:6px;">
+
                         <span class="minibadge" 
                             style="background:transparent; border:2px solid #62b365; color:#62b365;">
                             Accepted
                         </span>
+
+                        @if($request->adoption)
+                            <a href="{{ route('petlover.adoption.transcript', $request->adoption->adoption_id) }}"
+                            style="background:#E68A2E; color:white; border:none; border-radius:20px; padding:6px 14px; font-size:13px; text-decoration:none; display:inline-block;"
+                            target="_blank">
+                                Export Transcript
+                            </a>
+                        @endif
+
+                    </div>
 
                     @elseif($status == 'rejected')
                         <span class="minibadge"
@@ -133,7 +145,7 @@
                             @method('PATCH')
                             <input type="hidden" name="action" value="warned">
                             <button type="submit"
-                                    style="background:#FFC570; color:#2E2E2E; border:none; border-radius:20px; padding:6px 16px; cursor:pointer; font-size:13px;">
+                                    style="background:#FFC570; color:#2E2E2E; border:none; border-radius:20px; padding:6px 16px; cursor:pointer; font-size:13px; width: 120px; text-align: center;">
                                 Warn
                             </button>
                         </form>
@@ -143,7 +155,7 @@
                             @method('PATCH')
                             <input type="hidden" name="action" value="suspended">
                             <button type="submit"
-                                    style="background:#FFFACD; color:#2E2E2E; border:none; border-radius:20px; padding:6px 16px; cursor:pointer; font-size:13px;">
+                                    style="background:#FFFACD; color:#2E2E2E; border:none; border-radius:20px; padding:6px 16px; cursor:pointer; font-size:13px; width: 120px; text-align: center;">
                                 Suspend
                             </button>
                         </form>
@@ -153,7 +165,7 @@
                             @method('PATCH')
                             <input type="hidden" name="action" value="banned">
                             <button type="submit"
-                                    style="background:#FB7070; color:white; border:none; border-radius:20px; padding:6px 16px; cursor:pointer; font-size:13px;">
+                                    style="background:#FB7070; color:white; border:none; border-radius:20px; padding:6px 16px; cursor:pointer; font-size:13px; width: 120px; text-align: center;">
                                 Ban
                             </button>
                         </form>
@@ -163,27 +175,35 @@
                             @method('PATCH')
                             <input type="hidden" name="action" value="dismissed">
                             <button type="submit"
-                                    style="background:#E68A2E; color:white; border:none; border-radius:20px; padding:6px 16px; cursor:pointer; font-size:13px;">
+                                    style="background:#E68A2E; color:white; border:none; border-radius:20px; padding:6px 16px; cursor:pointer; font-size:13px; width: 120px; text-align: center;">
                                 Dismiss
                             </button>
                         </form>
 
                     @elseif($status == 'suspended')
-                        <span class="minibadge" style="background:#FFFACD; color:#2E2E2E; border:1px solid #ccc;">
-                            Suspended
-                        </span>
+                        <div style="position:absolute; top:0; right:0; height:100%; width:160px; background:#FFFACD; display:flex; align-items:center; justify-content:center;">
+                            <span class="minibadge" style="background:transparent; border:3px solid #2E2E2E; color:#2E2E2E; width:110px; text-align:center;">
+                                Suspended
+                            </span>
+                        </div>
                     @elseif($status == 'banned')
-                        <span class="minibadge" style="background:#FB7070; color:white;">
-                            Banned
-                        </span>
+                        <div style="position:absolute; top:0; right:0; height:100%; width:160px; background:#FB7070; display:flex; align-items:center; justify-content:center;">
+                            <span class="minibadge" style="background:transparent; border:3px solid white; color:white; width:110px; text-align:center;">
+                                Banned
+                            </span>
+                        </div>
                     @elseif($status == 'warned')
-                        <span class="minibadge" style="background:#FFC570; color:#2E2E2E;">
-                            Warned
-                        </span>
+                        <div style="position:absolute; top:0; right:0; height:100%; width:160px; background:#FFC570; display:flex; align-items:center; justify-content:center;">
+                            <span class="minibadge" style="background:transparent; border:3px solid #2E2E2E; color:#2E2E2E; width:110px; text-align:center;">
+                                Warned
+                            </span>
+                        </div>
                     @elseif($status == 'dismissed')
-                        <span class="minibadge" style="background:#ccc; color:#2E2E2E;">
-                            Dismissed
-                        </span>
+                        <div style="position:absolute; top:0; right:0; height:100%; width:160px; background:#E68A2E; display:flex; align-items:center; justify-content:center;">
+                            <span class="minibadge" style="background:transparent; border:3px solid white; color:white; width:110px; text-align:center;">
+                                Dismissed
+                            </span>
+                        </div>
                     @endif
                 @endif
 

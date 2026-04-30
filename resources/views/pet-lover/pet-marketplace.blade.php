@@ -45,11 +45,17 @@
                 @include('others.pet-card', ['pet' => $pet])
             </div>
         @empty
-    </div>
             <div class="col-md-12" style="text-align: center;">
                 <p>No furry friends available right now. Check back soon!</p>
             </div>
         @endforelse
+    </div>
+
+    @if($pets->hasPages())
+        <div style="margin-top: 20px; margin-bottom: 10px;">
+            {{ $pets->appends(request()->only(['sort', 'search']))->links() }}
+        </div>
+    @endif
 
     <p id="no-results-msg" style="display:none; text-align:center; color:#a07050; margin-top:20px;">
         No pets match your search.
@@ -57,8 +63,9 @@
 </div>
 
 <div id="pet-popup" class="pet-popup" style="display:none;">
-    @include('others.pet-info-popup')
+    @include('others.pet-info-popup', ['isAdmin' => false])
 </div>
+
 @endsection
 
 @push('pet-info')
@@ -70,62 +77,60 @@ document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('search-input');
     const noResults   = document.getElementById('no-results-msg');
 
-    function applyFilters() {
-        const sortVal   = sortSelect.value;
-        const searchVal = searchInput.value.trim().toLowerCase();
+    // ── Restore current filter state from URL ──
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('sort'))   sortSelect.value  = params.get('sort');
+    if (params.get('search')) searchInput.value = params.get('search');
 
+    // ── Server-side navigation on sort change ──
+    sortSelect.addEventListener('change', function () {
+        submitFilters();
+    });
+
+    // ── Debounced search → server ──
+    let searchTimer;
+    searchInput.addEventListener('input', function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(submitFilters, 400);
+    });
+
+    function submitFilters() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('sort',   sortSelect.value);
+        url.searchParams.set('search', searchInput.value.trim());
+        url.searchParams.delete('page'); // reset to page 1 on new filter
+        window.location.href = url.toString();
+    }
+
+    // ── Client-side visual filter for current page cards ──
+    function applyClientFilter() {
+        const searchVal = searchInput.value.trim().toLowerCase();
         const cards = Array.from(listing.querySelectorAll('.pet-cards'));
 
-        // 1. Show/hide by search
         cards.forEach(function (card) {
             const name = card.dataset.name || '';
             card.style.display = (!searchVal || name.includes(searchVal)) ? '' : 'none';
         });
 
-        // 2. Sort the visible cards
         const visible = cards.filter(c => c.style.display !== 'none');
-
-        visible.sort(function (a, b) {
-            switch (sortVal) {
-                case 'newest_arrival':
-                    return parseInt(b.dataset.created)  - parseInt(a.dataset.created);
-                case 'longest_stay':
-                    return parseInt(a.dataset.created)  - parseInt(b.dataset.created);
-                case 'age_desc': // youngest first = latest birthday first
-                    return parseInt(b.dataset.birthday) - parseInt(a.dataset.birthday);
-                case 'age_asc':  // oldest first = earliest birthday first
-                    return parseInt(a.dataset.birthday) - parseInt(b.dataset.birthday);
-                default:
-                    return 0;
-            }
-        });
-
-        // Re-append in new order
-        visible.forEach(c => listing.appendChild(c));
-
-        // Empty state
-        noResults.style.display = (visible.length === 0) ? 'block' : 'none';
+        noResults.style.display = (visible.length === 0 && searchVal) ? 'block' : 'none';
     }
-
-    sortSelect.addEventListener('change', applyFilters);
-    searchInput.addEventListener('input', applyFilters);
 });
 
-// ── Popup ──────────────────────────────────────────────────────
 function showPetInfo(el) {
     const popup = document.getElementById('pet-popup');
     if (!popup) return;
 
-    document.getElementById('popup-name').innerText    = el.dataset.name     || '';
-    document.getElementById('popup-age').value         = el.dataset.age      || '';
-    document.getElementById('popup-gender').value      = el.dataset.gender   || '';
-    document.getElementById('popup-breed').value       = el.dataset.breed    || '';
-    document.getElementById('popup-address').value     = el.dataset.address  || '';
-    document.getElementById('popup-like').value        = el.dataset.likes    || '';
-    document.getElementById('popup-dislike').value     = el.dataset.dislikes || '';
-    document.getElementById('popup-personality').value = el.dataset.personality || '';
-    document.getElementById('popup-owner').value       = el.dataset.owner    || '';
-    document.getElementById('popup-image').src         = el.dataset.image    || '';
+    document.getElementById('popup-name').innerText        = el.dataset.name        || '';
+    document.getElementById('popup-age').value             = el.dataset.age         || '';
+    document.getElementById('popup-gender').value          = el.dataset.gender      || '';
+    document.getElementById('popup-breed').value           = el.dataset.breed       || '';
+    document.getElementById('popup-address').value         = el.dataset.address     || '';
+    document.getElementById('popup-like').value            = el.dataset.likes       || '';
+    document.getElementById('popup-dislike').value         = el.dataset.dislikes    || '';
+    document.getElementById('popup-personality').value     = el.dataset.personality || '';
+    document.getElementById('popup-owner').value           = el.dataset.owner       || '';
+    document.getElementById('popup-image').src             = el.dataset.image       || '';
 
     document.getElementById('popup-msg-btn').onclick = function () {
         window.location.href = '/pet-lover/community-inbox?with=' + el.dataset.ownerId;
@@ -134,7 +139,6 @@ function showPetInfo(el) {
     document.getElementById('popup-pet-id').value = el.dataset.petId || '';
     window._popupOwnerId = el.dataset.ownerId || '';
 
-    // ── Medical history table ──
     const card  = el.closest('.pet-cards') || el;
     const tbody = document.getElementById('popup-medical-body');
     tbody.innerHTML = '';

@@ -37,7 +37,7 @@
         <h1>{{ $pet->name }}</h1>
     </div>
 
-    {{-- Bottom area: two buttons like Image 1 --}}
+    {{-- Bottom area: View + Delete --}}
     <div class="pet-mini-info" style="display:flex; flex-direction:row; justify-content:center; gap:10px; padding:30px 10px 15px 10px;">
         <button type="button"
                 class="admin-pet-view-btn"
@@ -45,11 +45,15 @@
                 style="background:#FFC570; border:none; border-radius:20px; padding:6px 18px; font-size:13px; cursor:pointer; color:#2E2E2E;">
             View
         </button>
-        <span class="admin-pet-status-badge"
-              style="border-radius:20px; padding:6px 14px; font-size:13px; white-space:nowrap;
-                     background:{{ $pet->status === 'available' ? '#d4edda' : '#f8d7da' }};
-                     color:{{ $pet->status === 'available' ? '#155724' : '#721c24' }}; border:none;">
-            {{ ucfirst($pet->status) }}
-        </span>
+        <form method="POST"
+              action="{{ route('admin.pet-delete', $pet->pet_id) }}"
+              onsubmit="return confirm('Are you sure you want to delete {{ $pet->name }}?')">
+            @csrf
+            @method('DELETE')
+            <button type="submit"
+                    style="background:#f8d7da; border:none; border-radius:20px; padding:6px 14px; font-size:13px; cursor:pointer; color:#721c24;">
+                Delete
+            </button>
+        </form>
     </div>
 </div>

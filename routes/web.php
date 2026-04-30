@@ -28,7 +28,10 @@ Route::middleware(['auth', 'role:admin', 'prevent-back'])->prefix('admin')->name
     Route::put('/profile',          [UserController::class,  'updateProfile'])->name('profile.update');
 
     Route::get('/user-management',  [AdminController::class, 'userManagement'])->name('user-management');
+
     Route::get('/pet-listing',      [AdminController::class, 'petListing'])->name('pet-listing');
+    Route::delete('/pet-listing/{id}', [AdminController::class, 'petDelete'])->name('pet-delete');
+    
     Route::get('/reports-flags',    [AdminController::class, 'reportsAndFlags'])->name('reports-flags');
     Route::patch('/reports-flags/{id}/action', [AdminController::class, 'reportAction'])->name('report-action');
 
@@ -50,7 +53,9 @@ Route::middleware(['auth', 'role:pet_lover', 'prevent-back'])->prefix('pet-lover
     Route::post('/rehoming-center', [PetLoverController::class, 'post_pet'])->name('post-pet.post');
 
     Route::get('/adoption-tracker', [PetLoverController::class, 'adoption_tracker'])->name('adoption-tracker');
-
+    Route::get('/adoption/transcript/{id}', [PetLoverController::class, 'adoption_transcript'])
+    ->name('adoption.transcript');
+    
     // Adoption request actions
     Route::post('/adoption-request',              [PetLoverController::class, 'adoption_request'])->name('adoption-request');
     Route::patch('/adoption-request/{id}/accept', [PetLoverController::class, 'adoption_accept'])->name('adoption-accept');

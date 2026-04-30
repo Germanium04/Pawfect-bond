@@ -10,6 +10,7 @@
         <link rel="stylesheet" href="{{ asset('style/others.css') }}">
         <link rel="stylesheet" href="{{ asset('style/container2.css') }}">
         <link rel="stylesheet" href="{{ asset('style/container3.css') }}">
+        <link rel="stylesheet" href="{{ asset('style/pagination.css') }}">
     </head>
 
     <body>

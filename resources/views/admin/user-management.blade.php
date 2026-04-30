@@ -78,6 +78,11 @@
                 @endforeach
             </tbody>
         </table>
+        @if($users->hasPages())
+            <div style="margin-top: 16px;">
+                {{ $users->appends(request()->only(['sort','search']))->links() }}
+            </div>
+        @endif
     </div>
 </div>
 @endsection

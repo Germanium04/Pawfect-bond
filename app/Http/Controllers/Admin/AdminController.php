@@ -19,10 +19,10 @@ class AdminController extends Controller
         $reportCount = Report::count();
         $rehomed     = Pet::where('status', 'rehomed')->count();
 
-        // ── Recent Reports (last 8) ──
+        // ── Recent Reports (all, JS will paginate 5/page on dashboard) ──
         $recentReports = Report::with(['reporter', 'reportedUser', 'reportedPet'])
             ->orderBy('created_at', 'desc')
-            ->take(8)
+            ->take(50)   // load up to 50 so JS pagination has enough rows; dashboard shows 5/page
             ->get();
 
         // ── Report Breakdown ──
@@ -32,7 +32,7 @@ class AdminController extends Controller
         $reportBanned    = Report::where('status', 'banned')->count();
         $reportDismissed = Report::where('status', 'dismissed')->count();
 
-        // ── Top Active Users (most posts) ──
+        // ── Top Active Users (top 10 for export; blade shows top 3) ──
         $topUsers = User::where('role', 'pet_lover')
             ->withCount([
                 'pets as posts_count',
@@ -40,7 +40,7 @@ class AdminController extends Controller
                 'adoptions as adopted_count',
             ])
             ->orderBy('posts_count', 'desc')
-            ->take(8)
+            ->take(10)
             ->get();
 
         // ── Pet Status Breakdown ──
@@ -107,7 +107,7 @@ class AdminController extends Controller
         }
 
         // FINAL EXECUTION
-        $users = $query->get();
+        $users = $query->paginate(10)->withQueryString();
 
         // ========================
         // STATS (unchanged logic)
@@ -134,7 +134,8 @@ class AdminController extends Controller
     public function petListing(Request $request)
     {
         // Start query
-        $query = Pet::where('status', 'available');
+        $query = Pet::with(['adoptionRequests', 'adoption'])
+        ->where('status', 'available');
 
         // ========================
         // SORTING
@@ -162,16 +163,13 @@ class AdminController extends Controller
         // ========================
         // SEARCH
         // ========================
-        if ($request->has('search') && $request->search != '') {
+          if ($request->has('search') && $request->search != '') {
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->search . '%');
-                // add more fields if needed:
-                // ->orWhere('breed', 'like', ...)
             });
         }
-
         // FINAL EXECUTION
-        $pets = $query->get();
+        $pets = $query->paginate(12)->withQueryString();
 
         // ========================
         // STATS
@@ -186,6 +184,15 @@ class AdminController extends Controller
             'available',
             'removed'
         ));
+    }
+
+    public function petDelete($id)
+    {
+        $pet = Pet::findOrFail($id);
+        $pet->delete();
+
+        return redirect()->route('admin.pet-listing')
+            ->with('success', 'Pet has been deleted successfully.');
     }
 
     public function reportsAndFlags(Request $request)
@@ -209,7 +216,7 @@ class AdminController extends Controller
             $query->where('status', $request->status);
         }
 
-        $report      = $query->get();
+        $report      = $query->paginate(10)->withQueryString();
         $reportCount = Report::count();
         $pending     = Report::where('status', 'pending')->count();
         $suspended   = Report::where('status', 'suspended')->count();

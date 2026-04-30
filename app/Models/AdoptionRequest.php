@@ -28,4 +28,9 @@ class AdoptionRequest extends Model
     {
         return $this->belongsTo(User::class, 'adopter_id');
     }
+
+    public function adoption()
+    {
+        return $this->hasOne(Adoption::class, 'request_id', 'request_id');
+    }
 }

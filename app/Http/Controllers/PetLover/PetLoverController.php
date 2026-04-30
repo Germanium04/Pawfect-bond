@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Auth;
 class PetLoverController extends Controller
 {
     public function dashboard() {
-        $user = Auth::user(); 
+        $user = Auth::user();
 
         // Only pets NOT owned by me
         $petAvailable = Pet::where('status', 'available')
@@ -43,14 +43,18 @@ class PetLoverController extends Controller
             ->where('owner_id', '!=', Auth::id())
             ->whereHas('owner', function ($q) use ($user) {
                 $q->where('address', $user->address);
-            })->get();
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(4, ['*'], 'dash_page');
 
         return view('pet-lover.dashboard', compact('petAvailable', 'request', 'messages', 'rehomed', 'pets'));
     }
 
     public function pet_marketplace(Request $request) {
         $query = Pet::where('status', 'available')
-                    ->where('owner_id', '!=', Auth::id());
+                    ->where('owner_id', '!=', Auth::id())
+                    // ✅ HARD GUARD: exclude pets that already have an adoption record
+                    ->whereDoesntHave('adoption');
 
         if ($request->has('sort')) {
             switch ($request->sort) {
@@ -65,21 +69,27 @@ class PetLoverController extends Controller
             $query->where('name', 'like', '%' . $request->search . '%');
         }
 
-        $pets = $query->with(['owner', 'medicalRecord'])->get();
+        $pets = $query->with(['owner', 'medicalRecord'])->paginate(12);
 
         return view('pet-lover.pet-marketplace', compact('pets'));
     }
 
     public function rehoming_center() {
-        $pets = Pet::where('owner_id', Auth::id())
-                    ->with(['owner', 'medicalRecord'])  // ← add this
+        // ── Stats (count all my pets, not just the current page) ──
+        $petsAll = Pet::where('owner_id', Auth::id())
+                    ->with(['owner', 'medicalRecord', 'adoptionRequests'])
                     ->get();
 
-        $petPosted       = $pets->count();
-        $rehomedPets     = $pets->where('status', 'rehomed')->count();
+        $petPosted       = $petsAll->count();
+        $rehomedPets     = $petsAll->where('status', 'rehomed')->count();
         $pendingRequests = AdoptionRequest::whereHas('pet', function($q) {
-                            $q->where('owner_id', Auth::id());
-                        })->where('status', 'pending')->count();
+                                $q->where('owner_id', Auth::id());
+                            })->where('status', 'pending')->count();
+
+        // ── Paginated table (10 per page) ──
+        $pets = Pet::where('owner_id', Auth::id())
+                    ->with(['owner', 'medicalRecord', 'adoptionRequests'])
+                    ->paginate(10, ['*'], 'rehome_page');
 
         return view('pet-lover.rehoming-center', compact('pets', 'rehomedPets', 'pendingRequests', 'petPosted'));
     }
@@ -156,19 +166,35 @@ class PetLoverController extends Controller
         $userId = Auth::id();
 
         $sentRequests = AdoptionRequest::where('adopter_id', $userId)
-            ->with('pet.owner')
+            ->with(['pet.owner', 'adoption'])
             ->get();
 
         $receivedRequests = AdoptionRequest::whereHas('pet', function($q) use ($userId) {
                 $q->where('owner_id', $userId);
             })
-            ->with(['pet.adoptionRequests', 'adopter'])
+            ->with(['pet.owner', 'adopter', 'adoption'])
             ->get();
 
         return view('pet-lover.adoption-tracker', compact('sentRequests', 'receivedRequests'));
     }
 
-    public function adoption_request(Request $request) 
+    public function adoption_transcript($id)
+    {
+        $adoption = Adoption::with(['pet', 'adopter', 'giver', 'admin'])
+            ->findOrFail($id);
+
+        // Security check (VERY important, don’t remove)
+        if (
+            $adoption->adopter_id !== Auth::id() &&
+            $adoption->giver_id !== Auth::id()
+        ) {
+            abort(403);
+        }
+
+        return view('pet-lover.adoption-transcript', compact('adoption'));
+    }
+
+    public function adoption_request(Request $request)
     {
         $request->validate([
             'pet_id' => 'required|exists:pets,pet_id'
@@ -216,17 +242,19 @@ class PetLoverController extends Controller
         }
 
         $adoptionRequest->update(['status' => 'accepted']);
-
-        Adoption::create([
-            'pet_id'        => $adoptionRequest->pet_id,
-            'giver_id'      => Auth::id(),
-            'adopter_id'    => $adoptionRequest->adopter_id,
-            'request_id'    => $adoptionRequest->request_id,
-            'adoption_date' => now()->toDateString(),
-        ]);
-
         $adoptionRequest->pet->update(['status' => 'rehomed']);
 
+        // ✅ FIX: include ALL required fields based on your migration
+        Adoption::create([
+            'pet_id'        => $adoptionRequest->pet_id,
+            'adopter_id'    => $adoptionRequest->adopter_id,
+            'giver_id'      => $adoptionRequest->pet->owner_id, // 👈 owner = giver
+            'request_id'    => $adoptionRequest->request_id,    // 👈 required
+            'approved_by'   => Auth::id(),                      // 👈 optional but correct
+            'adoption_date' => now(),
+        ]);
+
+        // Reject all other pending requests for the same pet
         AdoptionRequest::where('pet_id', $adoptionRequest->pet_id)
             ->where('request_id', '!=', $id)
             ->where('status', 'pending')
@@ -236,14 +264,13 @@ class PetLoverController extends Controller
         Notification::create([
             'user_id'      => $adoptionRequest->adopter_id,
             'type'         => 'adoption_accepted',
-            'title'        => 'Adoption Request Accepted! 🎉',
-            'message'      => 'Your request to adopt ' . $adoptionRequest->pet->name . ' has been accepted! Please coordinate with the owner.',
+            'title'        => 'Adoption Request Accepted',
+            'message'      => 'Your request to adopt ' . $adoptionRequest->pet->name . ' has been accepted!',
             'related_id'   => $adoptionRequest->request_id,
             'related_type' => 'adoption_request',
         ]);
 
-        return redirect()->route('petlover.adoption-tracker')
-            ->with('success', $adoptionRequest->pet->name . ' has been successfully rehomed!');
+        return redirect()->route('petlover.adoption-tracker')->with('success', 'Adoption accepted!');
     }
 
     public function adoption_decline($id)
@@ -292,14 +319,14 @@ class PetLoverController extends Controller
     {
         $userId = Auth::id();
 
+        // ── Build full conversation partner list ──────────────────
         $conversations = Message::where('sender_id', $userId)
             ->orWhere('receiver_id', $userId)
             ->with(['sender', 'receiver'])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($msg) use ($userId) {
-                $other = $msg->sender_id == $userId ? $msg->receiver : $msg->sender;
-                return $other;
+                return $msg->sender_id == $userId ? $msg->receiver : $msg->sender;
             })
             ->filter(function ($user) use ($userId) {
                 return $user && $user->user_id != $userId;
@@ -307,6 +334,7 @@ class PetLoverController extends Controller
             ->unique('user_id')
             ->values();
 
+        // ── Auto-prepend ?with= user if not already present ───────
         $openUserId = $request->query('with');
         if ($openUserId && (int) $openUserId !== (int) $userId) {
             $alreadyIn = $conversations->contains('user_id', (int) $openUserId);
@@ -320,20 +348,32 @@ class PetLoverController extends Controller
             $openUserId = null;
         }
 
+        // ── Stats ─────────────────────────────────────────────────
         $unreadCount  = Message::where('receiver_id', $userId)->where('is_read', 0)->count();
         $inquiryCount = Message::where('receiver_id', $userId)->count();
 
+        // ── Split into buckets ────────────────────────────────────
         $archivedUserIds = session()->get('archived_users', []);
-        $blockedUserIds  = session()->get('blocked_users', []);
+        $blockedUserIds  = session()->get('blocked_users',  []);
 
-        // Separate conversations into buckets
-        $archivedConversations = $conversations->filter(fn($u) => in_array($u->user_id, $archivedUserIds))->values();
-        $blockedConversations  = $conversations->filter(fn($u) => in_array($u->user_id, $blockedUserIds))->values();
-        $conversations         = $conversations->filter(fn($u) => !in_array($u->user_id, $archivedUserIds) && !in_array($u->user_id, $blockedUserIds))->values();
+        $archivedConversations = $conversations->filter(fn($u) =>  in_array($u->user_id, $archivedUserIds))->values();
+        $blockedConversations  = $conversations->filter(fn($u) =>  in_array($u->user_id, $blockedUserIds))->values();
+        $conversations         = $conversations->filter(fn($u) => !in_array($u->user_id, $archivedUserIds)
+                                                                 && !in_array($u->user_id, $blockedUserIds))->values();
+
+        // ── Total count across all tabs (for the Inquiries stat card) ──
+        $totalConversations = $conversations->count()
+                            + $archivedConversations->count()
+                            + $blockedConversations->count();
 
         return view('pet-lover.community-inbox', compact(
-            'conversations', 'openUserId', 'unreadCount', 'inquiryCount',
-            'archivedConversations', 'blockedConversations'
+            'conversations',
+            'archivedConversations',
+            'blockedConversations',
+            'openUserId',
+            'unreadCount',
+            'inquiryCount',
+            'totalConversations'    // ← NEW: passed to fix the Inquiries stat card
         ));
     }
 
@@ -368,7 +408,6 @@ class PetLoverController extends Controller
             'is_read'      => 0,
         ]);
 
-        // Notify the receiver
         Notification::create([
             'user_id'      => $request->receiver_id,
             'type'         => 'new_message',
@@ -397,7 +436,6 @@ class PetLoverController extends Controller
             'is_read'      => 0,
         ]);
 
-        // Notify the receiver
         Notification::create([
             'user_id'      => $request->receiver_id,
             'type'         => 'new_message',
@@ -423,7 +461,7 @@ class PetLoverController extends Controller
 
     public function community_inbox_archive(Request $request)
     {
-        $userId = (int) $request->input('user_id');
+        $userId   = (int) $request->input('user_id');
         $archived = session()->get('archived_users', []);
 
         if (!in_array($userId, $archived)) {
@@ -436,7 +474,7 @@ class PetLoverController extends Controller
 
     public function community_inbox_block(Request $request)
     {
-        $userId = (int) $request->input('user_id');
+        $userId  = (int) $request->input('user_id');
         $blocked = session()->get('blocked_users', []);
 
         if (!in_array($userId, $blocked)) {

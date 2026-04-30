@@ -12,7 +12,8 @@
         </div>
         <div class="stats-card col-md-3">
             <h3>Inquiries</h3>
-            <h2>{{ $conversations->count() }}</h2>
+            {{-- Use $totalConversations (all buckets combined) for the accurate count --}}
+            <h2>{{ $totalConversations ?? $conversations->count() }}</h2>
         </div>
         <div class="stats-card col-md-3">
             <h3>Unread</h3>
@@ -25,48 +26,69 @@
         {{-- LEFT BAR --}}
         <div class="left-bar">
             <div class="tab-option">
-                <button type="button" id="btn-active" class="tab-btn active">Active</button>
-                <button type="button" id="btn-archived" class="tab-btn">Archived</button>
-                <button type="button" id="btn-blocked" class="tab-btn">Blocked</button>
+                <button type="button" id="btn-active"   class="tab-btn active">
+                    Active
+                    @if($conversations->count() > 0)
+                        <span class="tab-count">{{ $conversations->count() }}</span>
+                    @endif
+                </button>
+                <button type="button" id="btn-archived" class="tab-btn">
+                    Archived
+                    @if($archivedConversations->count() > 0)
+                        <span class="tab-count">{{ $archivedConversations->count() }}</span>
+                    @endif
+                </button>
+                <button type="button" id="btn-blocked"  class="tab-btn">
+                    Blocked
+                    @if($blockedConversations->count() > 0)
+                        <span class="tab-count">{{ $blockedConversations->count() }}</span>
+                    @endif
+                </button>
             </div>
 
             <div class="people-list">
                 <ul id="list-active">
                     @forelse($conversations as $person)
                         <li data-user-id="{{ $person->user_id }}">
-                            {{ $person->first_name }} {{ $person->last_name }}
+                            <span class="conv-avatar">{{ strtoupper(substr($person->first_name, 0, 1)) }}</span>
+                            <span class="conv-name">{{ $person->first_name }} {{ $person->last_name }}</span>
                         </li>
                     @empty
                         <li class="no-convo">No conversations yet.</li>
                     @endforelse
                 </ul>
+
                 <ul id="list-archived" style="display:none;">
                     @forelse($archivedConversations as $person)
                         <li data-user-id="{{ $person->user_id }}">
-                            {{ $person->first_name }} {{ $person->last_name }}
+                            <span class="conv-avatar">{{ strtoupper(substr($person->first_name, 0, 1)) }}</span>
+                            <span class="conv-name">{{ $person->first_name }} {{ $person->last_name }}</span>
                         </li>
                     @empty
                         <li class="no-convo">No archived conversations.</li>
                     @endforelse
                 </ul>
+
                 <ul id="list-blocked" style="display:none;">
                     @forelse($blockedConversations as $person)
                         <li data-user-id="{{ $person->user_id }}">
-                            {{ $person->first_name }} {{ $person->last_name }}
+                            <span class="conv-avatar">{{ strtoupper(substr($person->first_name, 0, 1)) }}</span>
+                            <span class="conv-name">{{ $person->first_name }} {{ $person->last_name }}</span>
                         </li>
                     @empty
                         <li class="no-convo">No blocked users.</li>
                     @endforelse
                 </ul>
             </div>
+            {{-- .conv-pagination is injected here by JS --}}
         </div>
 
         {{-- RIGHT BAR --}}
         <div class="right-bar">
             <div class="action-buttons">
                 <button type="button" id="btn-archive" class="top-action-btn">Archive</button>
-                <button type="button" id="btn-block" class="top-action-btn">Block</button>
-                <button type="button" id="btn-report" class="top-action-btn">Report</button>
+                <button type="button" id="btn-block"   class="top-action-btn">Block</button>
+                <button type="button" id="btn-report"  class="top-action-btn">Report</button>
             </div>
 
             {{-- Report Modal --}}
@@ -91,12 +113,14 @@
                 </div>
             </div>
 
-            <div class="message-content empty-state" id="message-content" style="height:400px; overflow-y:auto; overflow-x:hidden; flex-shrink:0;">
+            <div class="message-content empty-state" id="message-content"
+                 style="height:400px; overflow-y:auto; overflow-x:hidden; flex-shrink:0;">
                 Select a conversation to view messages.
             </div>
 
             <div class="reply-section">
-                <button type="button" class="icon-btn" title="Pictures" onclick="document.getElementById('image-upload').click()">
+                <button type="button" class="icon-btn" title="Pictures"
+                        onclick="document.getElementById('image-upload').click()">
                     <img src="{{ asset('assets/send-pet-pic.png') }}" class="upload-pic" alt="Img">
                 </button>
                 <input type="file" id="image-upload" accept="image/*" style="display:none;">
@@ -115,41 +139,142 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    const authId = parseInt('{{ Auth::id() }}');
+    const authId     = parseInt('{{ Auth::id() }}');
     const openUserId = parseInt('{{ $openUserId ?? 0 }}') || null;
     let activeUserId = null;
 
-    // CSRF token — works whether the meta tag exists or not
+    /* ── CSRF ─────────────────────────────────────────────────── */
     function getCsrf() {
         const meta = document.querySelector('meta[name="csrf-token"]');
         if (meta) return meta.getAttribute('content');
-        // fallback: read from cookie
         const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
         return match ? decodeURIComponent(match[1]) : '';
     }
 
-    // ── Tab switching ──────────────────────────────────────────
+    /* ── Tab lists map ────────────────────────────────────────── */
     const tabLists = {
         'btn-active':   document.querySelector('#list-active'),
         'btn-archived': document.querySelector('#list-archived'),
         'btn-blocked':  document.querySelector('#list-blocked')
     };
 
-    document.querySelectorAll('.tab-btn').forEach(btn => {
+    /* ══════════════════════════════════════════════════════════
+       CONVERSATION LIST PAGINATION
+       Uses .conv-pagination class (styled in pagination.css)
+       10 items per page per tab.
+    ══════════════════════════════════════════════════════════ */
+    const CONV_PER_PAGE = 10;
+    const paginationState = { 'list-active': 1, 'list-archived': 1, 'list-blocked': 1 };
+
+    function renderConvPagination(listId) {
+        const ul = document.getElementById(listId);
+        if (!ul) return;
+
+        const allLi    = Array.from(ul.querySelectorAll('li[data-user-id]'));
+        const total    = allLi.length;
+        const totalPgs = Math.max(1, Math.ceil(total / CONV_PER_PAGE));
+        const page     = paginationState[listId] || 1;
+
+        /* show/hide items for current page */
+        allLi.forEach(function (li, i) {
+            const start = (page - 1) * CONV_PER_PAGE;
+            li.style.display = (i >= start && i < start + CONV_PER_PAGE) ? '' : 'none';
+        });
+
+        /* remove old paginator */
+        const old = ul.parentElement.querySelector('.conv-pagination');
+        if (old) old.remove();
+
+        /* no paginator needed for ≤1 page */
+        if (totalPgs <= 1) return;
+
+        /* build paginator */
+        const pg = document.createElement('div');
+        pg.className = 'conv-pagination';
+
+        function makeBtn(label, toPage, disabled, active) {
+            const b = document.createElement('button');
+            b.textContent = label;
+            b.disabled    = disabled;
+            if (active)    b.classList.add('pg-active');
+            if (disabled)  b.classList.add('pg-disabled');
+            if (!disabled) b.addEventListener('click', function () {
+                paginationState[listId] = toPage;
+                renderConvPagination(listId);
+            });
+            return b;
+        }
+
+        /* «  ‹  1 2 3 …  ›  » */
+        pg.appendChild(makeBtn('«', 1,          page === 1,          false));
+        pg.appendChild(makeBtn('‹', page - 1,   page === 1,          false));
+
+        /* sliding window: show max 5 page numbers */
+        const windowSize = 5;
+        let start = Math.max(1, page - Math.floor(windowSize / 2));
+        let end   = Math.min(totalPgs, start + windowSize - 1);
+        if (end - start < windowSize - 1) start = Math.max(1, end - windowSize + 1);
+
+        if (start > 1) {
+            pg.appendChild(makeBtn(1, 1, false, false));
+            if (start > 2) {
+                const dots = document.createElement('button');
+                dots.textContent = '…';
+                dots.disabled    = true;
+                dots.classList.add('pg-disabled');
+                pg.appendChild(dots);
+            }
+        }
+
+        for (let i = start; i <= end; i++) {
+            pg.appendChild(makeBtn(i, i, false, i === page));
+        }
+
+        if (end < totalPgs) {
+            if (end < totalPgs - 1) {
+                const dots = document.createElement('button');
+                dots.textContent = '…';
+                dots.disabled    = true;
+                dots.classList.add('pg-disabled');
+                pg.appendChild(dots);
+            }
+            pg.appendChild(makeBtn(totalPgs, totalPgs, false, false));
+        }
+
+        pg.appendChild(makeBtn('›', page + 1,   page === totalPgs,   false));
+        pg.appendChild(makeBtn('»', totalPgs,    page === totalPgs,   false));
+
+        ul.parentElement.appendChild(pg);
+    }
+
+    /* init pagination for all three lists */
+    renderConvPagination('list-active');
+    renderConvPagination('list-archived');
+    renderConvPagination('list-blocked');
+
+    /* ── Tab switching ────────────────────────────────────────── */
+    document.querySelectorAll('.tab-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             Object.values(tabLists).forEach(l => { if (l) l.style.display = 'none'; });
+            /* hide any existing paginator */
+            document.querySelectorAll('.conv-pagination').forEach(p => p.style.display = 'none');
+
             this.classList.add('active');
             const target = tabLists[this.id];
-            if (target) target.style.display = 'block';
+            if (target) {
+                target.style.display = 'block';
+                /* re-render pagination for this tab */
+                renderConvPagination(target.id);
+            }
             activeUserId = null;
             resetMessageArea();
         });
     });
 
-    // ── Person clicks ──────────────────────────────────────────
+    /* ── Person click ─────────────────────────────────────────── */
     function bindPersonClicks() {
-        document.querySelectorAll('.people-list li[data-user-id]').forEach(li => {
+        document.querySelectorAll('.people-list li[data-user-id]').forEach(function (li) {
             li.addEventListener('click', function () {
                 document.querySelectorAll('.people-list li').forEach(l => l.classList.remove('active-person'));
                 this.classList.add('active-person');
@@ -158,10 +283,9 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
-
     bindPersonClicks();
 
-    // ── Archive button ─────────────────────────────────────
+    /* ── Archive button ───────────────────────────────────────── */
     document.getElementById('btn-archive').addEventListener('click', function () {
         if (!activeUserId) { alert('Select a conversation first.'); return; }
         if (!confirm('Archive this conversation?')) return;
@@ -170,21 +294,25 @@ document.addEventListener('DOMContentLoaded', function () {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrf() },
             body: JSON.stringify({ user_id: parseInt(activeUserId) })
-        }).then(function() {
-            // Move the li from active list to archived list
+        }).then(function () {
             const li = document.querySelector('#list-active li[data-user-id="' + activeUserId + '"]');
             if (li) {
-                const archivedList = document.querySelector('#list-archived');
-                const placeholder  = archivedList.querySelector('.no-convo');
+                const archivedList  = document.querySelector('#list-archived');
+                const placeholder   = archivedList.querySelector('.no-convo');
                 if (placeholder) placeholder.remove();
+                li.style.display = '';          // reset hidden state from pagination
                 archivedList.appendChild(li);
             }
             activeUserId = null;
             resetMessageArea();
+            /* re-render both affected lists */
+            paginationState['list-active']   = 1;
+            paginationState['list-archived'] = 1;
+            renderConvPagination('list-active');
         });
     });
 
-    // ── Block button ───────────────────────────────────────
+    /* ── Block button ─────────────────────────────────────────── */
     document.getElementById('btn-block').addEventListener('click', function () {
         if (!activeUserId) { alert('Select a conversation first.'); return; }
         if (!confirm('Block this user? They will not be able to message you.')) return;
@@ -193,50 +321,50 @@ document.addEventListener('DOMContentLoaded', function () {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrf() },
             body: JSON.stringify({ user_id: parseInt(activeUserId) })
-        }).then(function() {
-            // Move the li from active list to blocked list
+        }).then(function () {
             const li = document.querySelector('#list-active li[data-user-id="' + activeUserId + '"]');
             if (li) {
                 const blockedList  = document.querySelector('#list-blocked');
                 const placeholder  = blockedList.querySelector('.no-convo');
                 if (placeholder) placeholder.remove();
+                li.style.display = '';          // reset hidden state from pagination
                 blockedList.appendChild(li);
             }
             activeUserId = null;
             resetMessageArea();
+            /* re-render both affected lists */
+            paginationState['list-active']  = 1;
+            paginationState['list-blocked'] = 1;
+            renderConvPagination('list-active');
         });
     });
 
-    // ── Report button ──────────────────────────────────────
+    /* ── Report button ────────────────────────────────────────── */
     document.getElementById('btn-report').addEventListener('click', function () {
         if (!activeUserId) { alert('Select a conversation first.'); return; }
 
-        // Find the active person's name from the list
-        const activeLi = document.querySelector('#list-active li[data-user-id="' + activeUserId + '"]')
-                      || document.querySelector('li[data-user-id="' + activeUserId + '"]');
-        const name = activeLi ? activeLi.textContent.trim() : 'this user';
+        const activeLi = document.querySelector('li[data-user-id="' + activeUserId + '"]');
+        const name     = activeLi
+            ? (activeLi.querySelector('.conv-name')?.textContent.trim() || activeLi.textContent.trim())
+            : 'this user';
 
-        document.getElementById('report-user-id').value = activeUserId;
+        document.getElementById('report-user-id').value              = activeUserId;
         document.getElementById('inbox-report-target-name').textContent = name;
         document.getElementById('inbox-report-modal').classList.add('open');
     });
 
-    // Close inbox report modal on backdrop click
-    document.getElementById('inbox-report-modal').addEventListener('click', function(e) {
+    document.getElementById('inbox-report-modal').addEventListener('click', function (e) {
         if (e.target === this) closeInboxReportModal();
     });
 
-    // Auto-load: prefer ?with= user, else first in list
-    // Use loop instead of attribute selector to avoid int/string mismatch
+    /* ── Auto-load first / ?with= conversation ────────────────── */
     let targetLi = null;
     if (openUserId) {
-        document.querySelectorAll('#list-active li[data-user-id]').forEach(function(el) {
+        document.querySelectorAll('#list-active li[data-user-id]').forEach(function (el) {
             if (parseInt(el.dataset.userId) === openUserId) targetLi = el;
         });
     }
-    if (!targetLi) {
-        targetLi = document.querySelector('#list-active li[data-user-id]');
-    }
+    if (!targetLi) targetLi = document.querySelector('#list-active li[data-user-id]');
 
     if (targetLi) {
         document.querySelectorAll('.people-list li').forEach(l => l.classList.remove('active-person'));
@@ -245,11 +373,11 @@ document.addEventListener('DOMContentLoaded', function () {
         loadMessages(activeUserId);
     }
 
-    // ── Load messages ──────────────────────────────────────────
+    /* ── Load messages ────────────────────────────────────────── */
     function loadMessages(userId) {
         const area = document.getElementById('message-content');
         area.classList.remove('empty-state');
-        area.innerHTML = '<p style="color:#a07050;text-align:center;padding:20px;">Loading...</p>';
+        area.innerHTML = '<p style="color:#a07050;text-align:center;padding:20px;">Loading…</p>';
 
         fetch('/pet-lover/community-inbox/read/' + userId, {
             method: 'POST',
@@ -257,21 +385,21 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         fetch('/pet-lover/community-inbox/messages/' + userId)
-            .then(function(res) {
+            .then(function (res) {
                 if (!res.ok) throw new Error('Server error ' + res.status);
                 return res.json();
             })
-            .then(function(messages) {
+            .then(function (messages) {
                 area.innerHTML = '';
                 if (messages.length === 0) {
                     area.classList.add('empty-state');
                     area.textContent = 'No messages yet. Say hello!';
                     return;
                 }
-                messages.forEach(function(msg) { renderMessage(msg); });
+                messages.forEach(function (msg) { renderMessage(msg); });
                 area.scrollTop = area.scrollHeight;
             })
-            .catch(function(err) {
+            .catch(function (err) {
                 area.innerHTML = '';
                 area.classList.add('empty-state');
                 area.textContent = 'Failed to load messages.';
@@ -279,15 +407,15 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    // ── Render message bubble ──────────────────────────────────
+    /* ── Render message bubble ────────────────────────────────── */
     function renderMessage(msg) {
-        const area = document.getElementById('message-content');
+        const area  = document.getElementById('message-content');
         const isMine = parseInt(msg.sender_id) === authId;
 
         const bubble = document.createElement('div');
         bubble.classList.add('msg-bubble', isMine ? 'msg-mine' : 'msg-theirs');
 
-        const date = new Date(msg.created_at);
+        const date    = new Date(msg.created_at);
         const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         let content = '';
@@ -302,21 +430,17 @@ document.addEventListener('DOMContentLoaded', function () {
         area.appendChild(bubble);
     }
 
-    // ── Send text message ──────────────────────────────────────
+    /* ── Send text ────────────────────────────────────────────── */
     document.getElementById('btn-send').addEventListener('click', sendMessage);
-
     document.getElementById('reply-input').addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
     });
 
     function sendMessage() {
         const input = document.getElementById('reply-input');
-        const text = input.value.trim();
-        if (!text) { alert('Please type a message.'); return; }
-        if (!activeUserId) { alert('Please select a conversation first.'); return; }
+        const text  = input.value.trim();
+        if (!text)          { alert('Please type a message.'); return; }
+        if (!activeUserId)  { alert('Please select a conversation first.'); return; }
 
         const area = document.getElementById('message-content');
         if (area.classList.contains('empty-state')) {
@@ -328,27 +452,27 @@ document.addEventListener('DOMContentLoaded', function () {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
+                'Accept':       'application/json',
                 'X-CSRF-TOKEN': getCsrf()
             },
             body: JSON.stringify({ receiver_id: parseInt(activeUserId), message_text: text })
         })
-        .then(function(res) {
-            if (!res.ok) return res.json().then(function(e) { throw e; });
+        .then(function (res) {
+            if (!res.ok) return res.json().then(function (e) { throw e; });
             return res.json();
         })
-        .then(function(msg) {
+        .then(function (msg) {
             input.value = '';
             renderMessage(msg);
             area.scrollTop = area.scrollHeight;
         })
-        .catch(function(err) {
+        .catch(function (err) {
             console.error('Send failed:', err);
             alert('Send failed: ' + JSON.stringify(err));
         });
     }
 
-    // ── Send image ─────────────────────────────────────────────
+    /* ── Send image ───────────────────────────────────────────── */
     document.getElementById('image-upload').addEventListener('change', function () {
         const file = this.files[0];
         if (!file || !activeUserId) return;
@@ -359,14 +483,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         fetch('/pet-lover/community-inbox/send-image', {
             method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': getCsrf()
-            },
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': getCsrf() },
             body: formData
         })
-        .then(function(res) { return res.json(); })
-        .then(function(msg) {
+        .then(function (res) { return res.json(); })
+        .then(function (msg) {
             renderMessage(msg);
             const area = document.getElementById('message-content');
             area.scrollTop = area.scrollHeight;
@@ -374,7 +495,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }.bind(this));
     });
 
-    // ── Helpers ────────────────────────────────────────────────
+    /* ── Helpers ──────────────────────────────────────────────── */
     function resetMessageArea() {
         const area = document.getElementById('message-content');
         area.innerHTML = '';
@@ -383,7 +504,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function escapeHtml(str) {
-        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
     }
 
 });

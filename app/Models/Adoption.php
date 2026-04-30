@@ -17,8 +17,6 @@ class Adoption extends Model
         'adoption_date'
     ];
 
-    // Relationships
-
     public function pet()
     {
         return $this->belongsTo(Pet::class, 'pet_id', 'pet_id');
